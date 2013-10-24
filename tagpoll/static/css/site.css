@@ -6,3 +6,6 @@
 .tag-checkbox {
   display: none;
 }
+#chart_div {
+  height: 700px;
+}

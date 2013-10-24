@@ -25,3 +25,19 @@ class TestModels(BaseTest):
         vote = models.Vote.query.one()
         assert vote.uuid is not None
         assert vote.tags == vote_tags
+
+    def test_view_results(self):
+        tags = set(["ponies", "thunderstorms", "giant robots", "archeological digs", "trombones", "dice"])
+        q = models.Question(text="Which are cool?", min=1, max=3, active=True, tags=tags)
+        models.DBSession.add(q)
+        q.add_vote(["thunderstorms", "archeological digs", "trombones"])
+        q.add_vote(["ponies", "thunderstorms"])
+        q.add_vote(["giant robots", "thunderstorms", "trombones"])
+        transaction.commit()
+
+        q = models.Question.query.one()
+        results = q.calculate_results()
+        assert results['votes'] == 3
+        assert results['tags']['thunderstorms'] == 3
+        assert results['tags']['dice'] == 0
+        assert results['ordered_tags'] == ['thunderstorms', 'trombones', 'ponies', 'giant robots', 'archeological digs']

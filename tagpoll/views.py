@@ -34,7 +34,10 @@ def record_vote(request):
 
 
 def show_results(request):
-    return {}
+    q = Question.query.filter_by(active=True).one()
+    data = q.calculate_results()
+    data['question'] = q
+    return data
 
 
 class VotedPredicate(object):

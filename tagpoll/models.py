@@ -20,6 +20,7 @@ from sqlalchemy.orm import (
 
 from zope.sqlalchemy import ZopeTransactionExtension
 from .util import convert_camel_case, GUID, make_uuid
+from collections import Counter
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 
@@ -77,6 +78,15 @@ class Question(Base):
             if tag not in self.tags:
                 raise ValueError("'{}' not in my tags.".format(tag))
         return Vote(question=self, tags=vote_tags)
+
+    def calculate_results(self):
+        tags = Counter()
+        for vote in self.votes:
+            for tag in vote.tags:
+                tags[tag] += 1
+        ordered_tags = list(tags.keys())
+        ordered_tags.sort(key=lambda tag: (tags[tag], tag), reverse=True)
+        return {'votes': len(self.votes), 'tags': tags, 'ordered_tags': ordered_tags}
 
 
 class Vote(Base):
