@@ -7,25 +7,27 @@ README = open(os.path.join(here, 'README.txt')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
-    'pyramid',
-    'SQLAlchemy',
-    'transaction',
-    'pyramid_tm',
-    'pyramid_debugtoolbar',
-    'zope.sqlalchemy',
-    'waitress',
-    ]
+    'Mako==0.9.0',
+    'SQLAlchemy==0.8.2',
+    'pyramid==1.4.5',
+    'pyramid-mako==0.3',
+    'pyramid-debugtoolbar==1.0.9',
+    'zope.sqlalchemy==0.7.3',
+    'transaction==1.4.1',
+    'pyramid-tm==0.7',
+    'waitress==0.8.7',
+]
 
 setup(name='tagpoll',
-      version='0.0',
+      version='0.1',
       description='tagpoll',
       long_description=README + '\n\n' + CHANGES,
       classifiers=[
-        "Programming Language :: Python",
-        "Framework :: Pyramid",
-        "Topic :: Internet :: WWW/HTTP",
-        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
-        ],
+          "Programming Language :: Python",
+          "Framework :: Pyramid",
+          "Topic :: Internet :: WWW/HTTP",
+          "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+      ],
       author='',
       author_email='',
       url='',
