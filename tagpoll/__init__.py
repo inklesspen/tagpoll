@@ -15,7 +15,8 @@ def main(global_config, **settings):
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
 
-    my_session_factory = UnencryptedCookieSessionFactoryConfig('itsaseekreet')
+    session_timeout = 86400 * 20
+    my_session_factory = UnencryptedCookieSessionFactoryConfig(settings['session.secret'], timeout=session_timeout, cookie_max_age=session_timeout)
 
     config = Configurator(settings=settings)
     config.set_session_factory(my_session_factory)
