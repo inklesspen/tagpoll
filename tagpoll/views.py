@@ -1,35 +1,59 @@
-from pyramid.response import Response
-from pyramid.view import view_config
-
-from sqlalchemy.exc import DBAPIError
+from pyramid.httpexceptions import HTTPSeeOther, HTTPBadRequest
 
 from .models import (
     DBSession,
-    MyModel,
-    )
+    Question,
+)
 
 
-@view_config(route_name='home', renderer='templates/mytemplate.pt')
-def my_view(request):
-    try:
-        one = DBSession.query(MyModel).filter(MyModel.name == 'one').first()
-    except DBAPIError:
-        return Response(conn_err_msg, content_type='text/plain', status_int=500)
-    return {'one': one, 'project': 'tagpoll'}
+def show_poll(request):
+    q = Question.query.filter_by(active=True).one()
+    return {
+        'text': q.text,
+        'tags': q.tags,
+        'max': q.max,
+        'min': q.min
+    }
 
-conn_err_msg = """\
-Pyramid is having a problem using your SQL database.  The problem
-might be caused by one of the following things:
 
-1.  You may need to run the "initialize_tagpoll_db" script
-    to initialize your database tables.  Check your virtual 
-    environment's "bin" directory for this script and try to run it.
+def already_voted(request):
+    return request.session.get('uuid') is not None or request.session.get('skipped') is True
 
-2.  Your database server may not be running.  Check that the
-    database server referred to by the "sqlalchemy.url" setting in
-    your "development.ini" file is running.
 
-After you fix the problem, please restart the Pyramid application to
-try it again.
-"""
+def record_vote(request):
+    if already_voted(request):
+        return HTTPBadRequest()
+    if 'skipped' in request.POST:
+        request.session['skipped'] = True
+    else:
+        q = Question.query.filter_by(active=True).one()
+        vote = q.add_vote(request.POST.getall('tag'))
+        DBSession.flush()
+        request.session['uuid'] = vote.uuid
+    return HTTPSeeOther(request.route_path('main'))
 
+
+def show_results(request):
+    return {}
+
+
+class VotedPredicate(object):
+    def __init__(self, val, config):
+        self.val = val
+
+    def text(self):
+        return 'voted = {}'.format(self.val)
+
+    phash = text
+
+    def __call__(self, context, request):
+        return already_voted(request) == self.val
+
+
+def includeme(config):
+    config.add_view_predicate('voted', VotedPredicate)
+    config.add_route('main', '/')
+    config.add_view(show_poll, route_name='main', renderer='tagpoll:templates/show_poll.mako', voted=False)
+    config.add_view(show_results, route_name='main', renderer='tagpoll:templates/show_results.mako', voted=True)
+    config.add_route('vote', '/vote')
+    config.add_view(record_vote, route_name='vote')

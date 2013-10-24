@@ -68,6 +68,11 @@ class Question(Base):
     votes = relationship('Vote', backref='question')
 
     def add_vote(self, vote_tags):
+        vote_tags = set(vote_tags)
+        if len(vote_tags) < self.min:
+            raise ValueError("Needed at least {} tags, got {}".format(self.min, len(vote_tags)))
+        if len(vote_tags) > self.max:
+            raise ValueError("Needed at most {} tags, got {}".format(self.max, len(vote_tags)))
         for tag in vote_tags:
             if tag not in self.tags:
                 raise ValueError("'{}' not in my tags.".format(tag))

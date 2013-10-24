@@ -1,0 +1,8 @@
+/* */
+#tagbuttons .btn-lg {
+  margin-top: 5px;
+  margin-right: 10px;
+}
+.tag-checkbox {
+  display: none;
+}
